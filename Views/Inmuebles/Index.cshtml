@@ -1,0 +1,211 @@
+@model PC2.ViewModels.CatalogoViewModel
+
+@{
+    ViewData["Title"] = "Catálogo de Inmuebles";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-home me-2"></i>Catálogo de Inmuebles
+                </h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Catálogo</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+                        @if (Model.Filtros.TieneFiltrosActivos())
+                        {
+                            <span class="badge bg-warning text-dark ms-2">Filtros activos</span>
+                        }
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @await Html.PartialAsync("_FiltrosPartial", Model.Filtros)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <p class="text-muted mb-0">@Model.MensajeResultados</p>
+                @if (Model.Filtros.TieneFiltrosActivos())
+                {
+                    <form asp-action="LimpiarFiltros" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-times me-1"></i>Limpiar filtros
+                        </button>
+                    </form>
+                }
+            </div>
+            <hr>
+        </div>
+    </div>
+
+    <!-- Lista de Inmuebles -->
+    <div class="row">
+        @if (Model.Inmuebles.Any())
+        {
+            @foreach (var inmueble in Model.Inmuebles)
+            {
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="position-relative">
+                            @if (!string.IsNullOrEmpty(inmueble.Imagen))
+                            {
+                                <img src="@inmueble.Imagen" class="card-img-top" alt="@inmueble.Titulo" 
+                                     style="height: 200px; object-fit: cover;">
+                            }
+                            else
+                            {
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                     style="height: 200px;">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                </div>
+                            }
+                            <div class="position-absolute top-0 start-0 m-2">
+                                <span class="badge bg-primary">@inmueble.Tipo</span>
+                            </div>
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge bg-success">@inmueble.Precio.ToString("C")</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title text-truncate" title="@inmueble.Titulo">@inmueble.Titulo</h6>
+                            <p class="card-text text-muted mb-2">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                @inmueble.Direccion, @inmueble.Ciudad
+                            </p>
+                            
+                            <div class="row text-center mb-3">
+                                @if (inmueble.Dormitorios > 0)
+                                {
+                                    <div class="col-4">
+                                        <small class="text-muted d-block">Dormitorios</small>
+                                        <strong>@inmueble.Dormitorios</strong>
+                                    </div>
+                                }
+                                <div class="col-4">
+                                    <small class="text-muted d-block">Baños</small>
+                                    <strong>@inmueble.Banos</strong>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted d-block">m²</small>
+                                    <strong>@inmueble.MetrosCuadrados</strong>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-auto">
+                                <a asp-action="Details" asp-route-id="@inmueble.Id" 
+                                   class="btn btn-primary w-100">
+                                    <i class="fas fa-eye me-1"></i>Ver Detalles
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info text-center py-5">
+                    <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                    <h4>No se encontraron inmuebles</h4>
+                    <p class="mb-3">Intenta ajustar tus filtros de búsqueda o explora otras opciones.</p>
+                    <a asp-action="Index" class="btn btn-primary">Ver todos los inmuebles</a>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Paginación -->
+    @if (Model.TotalPaginas > 1)
+    {
+        <div class="row">
+            <div class="col-12">
+                <nav aria-label="Navegación de páginas">
+                    <ul class="pagination justify-content-center">
+                        <!-- Primera página -->
+                        <li class="page-item @(Model.TienePaginaAnterior ? "" : "disabled")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-pagina="1" asp-route-ciudad="@Model.Filtros.Ciudad" 
+                               asp-route-tipo="@Model.Filtros.Tipo" asp-route-precioMin="@Model.Filtros.PrecioMin"
+                               asp-route-precioMax="@Model.Filtros.PrecioMax" asp-route-dormitorios="@Model.Filtros.Dormitorios">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+
+                        <!-- Página anterior -->
+                        <li class="page-item @(Model.TienePaginaAnterior ? "" : "disabled")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-pagina="@(Model.PaginaActual - 1)" asp-route-ciudad="@Model.Filtros.Ciudad" 
+                               asp-route-tipo="@Model.Filtros.Tipo" asp-route-precioMin="@Model.Filtros.PrecioMin"
+                               asp-route-precioMax="@Model.Filtros.PrecioMax" asp-route-dormitorios="@Model.Filtros.Dormitorios">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+
+                        <!-- Números de página -->
+                        @foreach (var pagina in Model.PaginasParaMostrar())
+                        {
+                            <li class="page-item @(pagina == Model.PaginaActual ? "active" : "")">
+                                <a class="page-link" asp-action="Index"
+                                   asp-route-pagina="@pagina" asp-route-ciudad="@Model.Filtros.Ciudad" 
+                                   asp-route-tipo="@Model.Filtros.Tipo" asp-route-precioMin="@Model.Filtros.PrecioMin"
+                                   asp-route-precioMax="@Model.Filtros.PrecioMax" asp-route-dormitorios="@Model.Filtros.Dormitorios">
+                                    @pagina
+                                </a>
+                            </li>
+                        }
+
+                        <!-- Página siguiente -->
+                        <li class="page-item @(Model.TienePaginaSiguiente ? "" : "disabled")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-pagina="@(Model.PaginaActual + 1)" asp-route-ciudad="@Model.Filtros.Ciudad" 
+                               asp-route-tipo="@Model.Filtros.Tipo" asp-route-precioMin="@Model.Filtros.PrecioMin"
+                               asp-route-precioMax="@Model.Filtros.PrecioMax" asp-route-dormitorios="@Model.Filtros.Dormitorios">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+
+                        <!-- Última página -->
+                        <li class="page-item @(Model.TienePaginaSiguiente ? "" : "disabled")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-pagina="@Model.TotalPaginas" asp-route-ciudad="@Model.Filtros.Ciudad" 
+                               asp-route-tipo="@Model.Filtros.Tipo" asp-route-precioMin="@Model.Filtros.PrecioMin"
+                               asp-route-precioMax="@Model.Filtros.PrecioMax" asp-route-dormitorios="@Model.Filtros.Dormitorios">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <div class="text-center">
+                    <small class="text-muted">
+                        Página @Model.PaginaActual de @Model.TotalPaginas 
+                        (@Model.TotalItems resultados en total)
+                    </small>
+                </div>
+            </div>
+        </div>
+    }
+</div>

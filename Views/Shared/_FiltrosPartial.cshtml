@@ -1,0 +1,108 @@
+@model PC2.ViewModels.FiltrosInmueblesViewModel
+
+<form asp-action="Index" method="get" class="needs-validation" novalidate>
+    <!-- Mostrar errores de validación generales -->
+    <div asp-validation-summary="All" class="alert alert-danger" style="display: @(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+    
+    <div class="row g-3">
+        <!-- Ciudad -->
+        <div class="col-md-3">
+            <label asp-for="Ciudad" class="form-label">Ciudad</label>
+            <select asp-for="Ciudad" class="form-select" asp-items='new SelectList(ViewBag.CiudadesDisponibles ?? new List<string>(), Model?.Ciudad)'>
+                <option value="">Todas las ciudades</option>
+            </select>
+            <span asp-validation-for="Ciudad" class="invalid-feedback d-block"></span>
+        </div>
+
+        <!-- Tipo -->
+        <div class="col-md-3">
+            <label asp-for="Tipo" class="form-label">Tipo de Inmueble</label>
+            <select asp-for="Tipo" class="form-select" asp-items="Html.GetEnumSelectList<PC2.Models.TipoInmueble>()">
+                <option value="">Todos los tipos</option>
+            </select>
+            <span asp-validation-for="Tipo" class="invalid-feedback d-block"></span>
+        </div>
+
+        <!-- Precio Mínimo -->
+        <div class="col-md-3">
+            <label asp-for="PrecioMin" class="form-label">Precio Mínimo</label>
+            <div class="input-group">
+                <span class="input-group-text">S/</span>
+                <input asp-for="PrecioMin" type="number" min="0" step="1000" class="form-control @(ViewData.ModelState["PrecioMin"]?.Errors.Count > 0 ? "is-invalid" : "")" placeholder="0">
+            </div>
+            <span asp-validation-for="PrecioMin" class="invalid-feedback d-block"></span>
+        </div>
+
+        <!-- Precio Máximo -->
+        <div class="col-md-3">
+            <label asp-for="PrecioMax" class="form-label">Precio Máximo</label>
+            <div class="input-group">
+                <span class="input-group-text">S/</span>
+                <input asp-for="PrecioMax" type="number" min="0" step="1000" class="form-control @(ViewData.ModelState["PrecioMax"]?.Errors.Count > 0 ? "is-invalid" : "")" placeholder="Sin límite">
+            </div>
+            <span asp-validation-for="PrecioMax" class="invalid-feedback d-block"></span>
+        </div>
+
+        <!-- Dormitorios -->
+        <div class="col-md-3">
+            <label asp-for="Dormitorios" class="form-label">Mínimo Dormitorios</label>
+            <select asp-for="Dormitorios" class="form-select">
+                <option value="">Cualquier cantidad</option>
+                <option value="0">0 dormitorios</option>
+                <option value="1">1+ dormitorios</option>
+                <option value="2">2+ dormitorios</option>
+                <option value="3">3+ dormitorios</option>
+                <option value="4">4+ dormitorios</option>
+                <option value="5">5+ dormitorios</option>
+            </select>
+            <span asp-validation-for="Dormitorios" class="invalid-feedback d-block"></span>
+        </div>
+
+        <!-- Botones -->
+        <div class="col-md-9">
+            <div class="d-flex gap-2 align-items-end h-100">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-1"></i>Buscar
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Limpiar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Campo oculto para mantener la página en 1 cuando se aplican filtros -->
+    <input type="hidden" name="pagina" value="1" />
+</form>
+
+<script>
+    // Validación en tiempo real para el rango de precios
+    document.addEventListener('DOMContentLoaded', function() {
+        const precioMin = document.querySelector('input[name="PrecioMin"]');
+        const precioMax = document.querySelector('input[name="PrecioMax"]');
+        
+        function validarRangoPrecios() {
+            if (precioMin.value && precioMax.value) {
+                const min = parseFloat(precioMin.value);
+                const max = parseFloat(precioMax.value);
+                
+                if (min > max) {
+                    precioMax.setCustomValidity('El precio máximo debe ser mayor al precio mínimo');
+                    precioMin.setCustomValidity('El precio mínimo debe ser menor al precio máximo');
+                } else {
+                    precioMax.setCustomValidity('');
+                    precioMin.setCustomValidity('');
+                }
+            } else {
+                precioMax.setCustomValidity('');
+                precioMin.setCustomValidity('');
+            }
+        }
+        
+        if (precioMin && precioMax) {
+            precioMin.addEventListener('input', validarRangoPrecios);
+            precioMax.addEventListener('input', validarRangoPrecios);
+        }
+    });
+</script>
+            
