@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "tzpR0/abTT0=",
+  "dgSpecHash": "Y1KiSaBn9fs=",
   "success": true,
   "projectFilePath": "C:\\Users\\monke\\OneDrive\\Documentos\\waaa\\PC2\\PC2.csproj",
   "expectedPackageFiles": [
@@ -30,6 +30,7 @@
     "C:\\Users\\monke\\.nuget\\packages\\microsoft.entityframeworkcore.tools\\9.0.9\\microsoft.entityframeworkcore.tools.9.0.9.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\9.0.9\\microsoft.extensions.caching.abstractions.9.0.9.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\microsoft.extensions.caching.memory\\9.0.9\\microsoft.extensions.caching.memory.9.0.9.nupkg.sha512",
+    "C:\\Users\\monke\\.nuget\\packages\\microsoft.extensions.caching.stackexchangeredis\\9.0.9\\microsoft.extensions.caching.stackexchangeredis.9.0.9.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\9.0.9\\microsoft.extensions.configuration.abstractions.9.0.9.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\9.0.9\\microsoft.extensions.dependencyinjection.9.0.9.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.9\\microsoft.extensions.dependencyinjection.abstractions.9.0.9.nupkg.sha512",
@@ -43,10 +44,12 @@
     "C:\\Users\\monke\\.nuget\\packages\\microsoft.extensions.options\\9.0.9\\microsoft.extensions.options.9.0.9.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.9\\microsoft.extensions.primitives.9.0.9.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
+    "C:\\Users\\monke\\.nuget\\packages\\pipelines.sockets.unofficial\\2.2.8\\pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\sqlitepclraw.bundle_e_sqlite3\\2.1.10\\sqlitepclraw.bundle_e_sqlite3.2.1.10.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\sqlitepclraw.core\\2.1.10\\sqlitepclraw.core.2.1.10.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\sqlitepclraw.lib.e_sqlite3\\2.1.10\\sqlitepclraw.lib.e_sqlite3.2.1.10.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\sqlitepclraw.provider.e_sqlite3\\2.1.10\\sqlitepclraw.provider.e_sqlite3.2.1.10.nupkg.sha512",
+    "C:\\Users\\monke\\.nuget\\packages\\stackexchange.redis\\2.7.27\\stackexchange.redis.2.7.27.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\system.codedom\\6.0.0\\system.codedom.6.0.0.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\system.collections.immutable\\7.0.0\\system.collections.immutable.7.0.0.nupkg.sha512",
     "C:\\Users\\monke\\.nuget\\packages\\system.composition\\7.0.0\\system.composition.7.0.0.nupkg.sha512",

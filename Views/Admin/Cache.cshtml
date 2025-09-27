@@ -1,0 +1,278 @@
+@{
+    ViewData["Title"] = "Gestión de Caché";
+    var estadisticas = ViewBag.EstadisticasCache;
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-memory me-2"></i>Gestión de Caché Redis
+                </h2>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensajes de feedback -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Estado de Redis -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-@(estadisticas.RedisConectado ? "success" : "danger") text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-server me-2"></i>Estado de Redis
+                        <span class="badge bg-light text-dark ms-2">
+                            @(estadisticas.RedisConectado ? "CONECTADO" : "DESCONECTADO")
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">@estadisticas.TotalClaves</h4>
+                                <small class="text-muted">Total de Claves</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">@estadisticas.ClavesInmuebles.Length</h4>
+                                <small class="text-muted">Claves Inmuebles</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">@estadisticas.ClavesCiudades.Length</h4>
+                                <small class="text-muted">Claves Ciudades</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-secondary">@estadisticas.OtrasClaves.Length</h4>
+                                <small class="text-muted">Otras Claves</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones de limpieza -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-broom me-2"></i>Acciones de Limpieza
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <form asp-action="LimpiarCache" asp-route-patron="inmuebles:*" method="post" 
+                                  onsubmit="return confirm('¿Estás seguro de limpiar el caché de inmuebles?')">
+                                <button type="submit" class="btn btn-warning w-100">
+                                    <i class="fas fa-home me-1"></i>
+                                    Limpiar Inmuebles
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <form asp-action="LimpiarCache" asp-route-patron="ciudades:*" method="post" 
+                                  onsubmit="return confirm('¿Estás seguro de limpiar el caché de ciudades?')">
+                                <button type="submit" class="btn btn-info w-100">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    Limpiar Ciudades
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button type="button" class="btn btn-success w-100" onclick="refrescarEstadisticas()">
+                                <i class="fas fa-sync-alt me-1"></i>
+                                Refrescar
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <form asp-action="LimpiarCache" method="post" 
+                                  onsubmit="return confirm('¿Estás seguro de limpiar TODO el caché? Esta acción no se puede deshacer.')">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-trash me-1"></i>
+                                    Limpiar Todo
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle de claves -->
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-home me-2"></i>Claves de Inmuebles (@estadisticas.ClavesInmuebles.Length)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (estadisticas.ClavesInmuebles.Length > 0)
+                    {
+                        <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                            @foreach (var clave in estadisticas.ClavesInmuebles.Take(10))
+                            {
+                                <div class="list-group-item px-0 py-1">
+                                    <small class="text-monospace">@clave</small>
+                                </div>
+                            }
+                            @if (estadisticas.ClavesInmuebles.Length > 10)
+                            {
+                                <div class="list-group-item px-0 py-1 text-muted">
+                                    <small>... y @(estadisticas.ClavesInmuebles.Length - 10) más</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No hay claves de inmuebles</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="fas fa-map-marker-alt me-2"></i>Claves de Ciudades (@estadisticas.ClavesCiudades.Length)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (estadisticas.ClavesCiudades.Length > 0)
+                    {
+                        <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                            @foreach (var clave in estadisticas.ClavesCiudades)
+                            {
+                                <div class="list-group-item px-0 py-1">
+                                    <small class="text-monospace">@clave</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No hay claves de ciudades</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-ellipsis-h me-2"></i>Otras Claves (@estadisticas.OtrasClaves.Length)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (estadisticas.OtrasClaves.Length > 0)
+                    {
+                        <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                            @foreach (var clave in estadisticas.OtrasClaves)
+                            {
+                                <div class="list-group-item px-0 py-1">
+                                    <small class="text-monospace">@clave</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No hay otras claves</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function refrescarEstadisticas() {
+            location.reload();
+        }
+
+        // Auto-refresh cada 2 minutos
+        setInterval(function() {
+            const now = new Date();
+            console.log(`Auto-refresh caché: ${now.toLocaleTimeString()}`);
+            
+            // Mostrar notificación pequeña
+            const toast = document.createElement('div');
+            toast.className = 'toast align-items-center text-white bg-info border-0 position-fixed';
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-sync-alt me-2"></i>Actualizando estadísticas...
+                    </div>
+                </div>`;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+            
+        }, 120000); // 2 minutos
+    </script>
+}
+
+@section Styles {
+    <style>
+        .text-monospace {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+        
+        .list-group-item {
+            border: none;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .list-group-item:last-child {
+            border-bottom: none;
+        }
+        
+        .card {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+}
