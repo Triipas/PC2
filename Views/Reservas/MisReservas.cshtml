@@ -1,0 +1,236 @@
+@model IEnumerable<PC2.Models.Visita>
+
+@{
+    ViewData["Title"] = "Mis Visitas";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-calendar-alt me-2"></i>Mis Visitas Programadas
+                </h2>
+                <a asp-controller="Inmuebles" asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Agendar Nueva Visita
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensajes de feedback -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        @if (Model.Any())
+        {
+            var visitasProximas = Model.Where(v => v.FechaInicio >= DateTime.Now && v.Estado != PC2.Models.EstadoVisita.Cancelada);
+            var visitasPasadas = Model.Where(v => v.FechaInicio < DateTime.Now || v.Estado == PC2.Models.EstadoVisita.Cancelada);
+
+            <!-- Visitas próximas -->
+            @if (visitasProximas.Any())
+            {
+                <div class="col-12 mb-4">
+                    <h4 class="text-primary mb-3">
+                        <i class="fas fa-clock me-2"></i>Próximas Visitas (@visitasProximas.Count())
+                    </h4>
+                    
+                    @foreach (var visita in visitasProximas.OrderBy(v => v.FechaInicio))
+                    {
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        @if (!string.IsNullOrEmpty(visita.Inmueble.Imagen))
+                                        {
+                                            <img src="@visita.Inmueble.Imagen" alt="@visita.Inmueble.Titulo" 
+                                                 class="img-fluid rounded" style="height: 80px; width: 100%; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                                 style="height: 80px;">
+                                                <i class="fas fa-image fa-2x text-muted"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <h6 class="mb-1">@visita.Inmueble.Titulo</h6>
+                                        <p class="text-muted mb-1">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            @visita.Inmueble.Direccion, @visita.Inmueble.Ciudad
+                                        </p>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-@(visita.Estado == PC2.Models.EstadoVisita.Confirmada ? "success" : "warning") me-2">
+                                                @visita.Estado
+                                            </span>
+                                            <small class="text-muted">Código: @visita.Inmueble.Codigo</small>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(visita.Notas))
+                                        {
+                                            <p class="text-muted small mb-0">
+                                                <i class="fas fa-sticky-note me-1"></i>
+                                                @visita.Notas
+                                            </p>
+                                        }
+                                    </div>
+                                    
+                                    <div class="col-md-2 text-center">
+                                        <div class="mb-2">
+                                            <i class="fas fa-calendar text-primary fa-2x"></i>
+                                        </div>
+                                        <strong class="d-block">@visita.FechaInicio.ToString("dd/MM/yyyy")</strong>
+                                        <span class="text-muted">@visita.FechaInicio.ToString("HH:mm") - @visita.FechaFin.ToString("HH:mm")</span>
+                                        
+                                        @{
+                                            var tiempoRestante = visita.FechaInicio - DateTime.Now;
+                                        }
+                                        
+                                        @if (tiempoRestante.TotalDays < 1)
+                                        {
+                                            <div class="badge bg-info mt-1">
+                                                @if (tiempoRestante.TotalHours < 1)
+                                                {
+                                                    <span>En @((int)tiempoRestante.TotalMinutes) min</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>En @((int)tiempoRestante.TotalHours)h</span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                    
+                                    <div class="col-md-2 text-end">
+                                        <div class="btn-group-vertical gap-1">
+                                            <a asp-controller="Inmuebles" asp-action="Details" asp-route-id="@visita.InmuebleId" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye me-1"></i>Ver Inmueble
+                                            </a>
+                                            
+                                            @if (visita.Estado != PC2.Models.EstadoVisita.Cancelada && visita.FechaInicio > DateTime.Now.AddHours(2))
+                                            {
+                                                <form asp-action="Cancelar" asp-route-id="@visita.Id" method="post" 
+                                                      onsubmit="return confirm('¿Estás seguro de cancelar esta visita?')" class="d-inline">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                                        <i class="fas fa-times me-1"></i>Cancelar
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Historial de visitas -->
+            @if (visitasPasadas.Any())
+            {
+                <div class="col-12">
+                    <h4 class="text-secondary mb-3">
+                        <i class="fas fa-history me-2"></i>Historial (@visitasPasadas.Count())
+                    </h4>
+                    
+                    <div class="accordion" id="historialAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseHistorial" aria-expanded="false">
+                                    Ver historial de visitas anteriores
+                                </button>
+                            </h2>
+                            <div id="collapseHistorial" class="accordion-collapse collapse" 
+                                 data-bs-parent="#historialAccordion">
+                                <div class="accordion-body">
+                                    @foreach (var visita in visitasPasadas.OrderByDescending(v => v.FechaInicio))
+                                    {
+                                        <div class="card mb-2 bg-light">
+                                            <div class="card-body py-2">
+                                                <div class="row align-items-center">
+                                                    <div class="col-md-8">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="me-3">
+                                                                <strong>@visita.Inmueble.Titulo</strong>
+                                                                <small class="text-muted d-block">@visita.Inmueble.Ciudad</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2 text-center">
+                                                        <small class="text-muted">@visita.FechaInicio.ToString("dd/MM/yyyy HH:mm")</small>
+                                                    </div>
+                                                    <div class="col-md-2 text-end">
+                                                        <span class="badge bg-@(visita.Estado == PC2.Models.EstadoVisita.Confirmada ? "success" : visita.Estado == PC2.Models.EstadoVisita.Cancelada ? "danger" : "warning")">
+                                                            @visita.Estado
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Estado vacío -->
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-calendar-times fa-4x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">No tienes visitas programadas</h4>
+                    <p class="text-muted mb-4">Explora nuestro catálogo y agenda tu primera visita</p>
+                    <a asp-controller="Inmuebles" asp-action="Index" class="btn btn-primary btn-lg">
+                        <i class="fas fa-search me-2"></i>Explorar Inmuebles
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .card {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .card:hover {
+            transform: translateY(-1px);
+        }
+        
+        .btn-group-vertical .btn {
+            margin-bottom: 2px;
+        }
+        
+        .badge {
+            font-size: 0.75rem;
+        }
+        
+        .accordion-button:not(.collapsed) {
+            background-color: #f8f9fa;
+        }
+    </style>
+}

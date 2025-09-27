@@ -34,6 +34,34 @@
                                 <i class="fas fa-search me-1"></i>Catálogo
                             </a>
                         </li>
+                        
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user me-1"></i>Mi Cuenta
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Visitas" asp-action="MisVisitas">
+                                            <i class="fas fa-calendar-alt me-2"></i>Mis Visitas
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Reservas" asp-action="MisReservas">
+                                            <i class="fas fa-clock me-2"></i>Mis Reservas
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">
+                                            <i class="fas fa-cog me-2"></i>Configuración
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">
                                 <i class="fas fa-shield-alt me-1"></i>Privacidad
@@ -53,7 +81,17 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; @DateTime.Now.Year - Portal Inmobiliario - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="row">
+                <div class="col-md-6">
+                    &copy; @DateTime.Now.Year - Portal Inmobiliario - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                </div>
+                <div class="col-md-6 text-end">
+                    <small class="text-muted">
+                        <i class="fas fa-phone me-1"></i>+51 999 999 999 |
+                        <i class="fas fa-envelope me-1"></i>contacto@portalinmobiliario.com
+                    </small>
+                </div>
+            </div>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
