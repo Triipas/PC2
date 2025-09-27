@@ -42,6 +42,9 @@ namespace PC2.Controllers
                     .OrderBy(c => c)
                     .ToListAsync();
 
+                // Pasar ciudades al ViewBag para el partial
+                ViewBag.CiudadesDisponibles = viewModel.CiudadesDisponibles;
+
                 // Construir query base (solo inmuebles activos)
                 var query = _context.Inmuebles.Where(i => i.Activo);
 

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PC2.Data;
+using PC2.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,15 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 
 builder.Services.AddControllersWithViews();
 
+// Registrar servicios de la aplicación
+builder.Services.AddScoped<IVisitasService, VisitasService>();
+builder.Services.AddScoped<IReservasService, ReservasService>();
+
+// Configurar logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
 var app = builder.Build();
 
 // Seed data initialization
@@ -36,6 +46,15 @@ using (var scope = app.Services.CreateScope())
     try
     {
         await SeedData.Initialize(services);
+        
+        // Limpiar reservas expiradas al inicio
+        var reservasService = services.GetRequiredService<IReservasService>();
+        var reservasLimpiadas = await reservasService.LimpiarReservasExpiradasAsync();
+        if (reservasLimpiadas > 0)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("Se limpiaron {Count} reservas expiradas al iniciar la aplicación", reservasLimpiadas);
+        }
     }
     catch (Exception ex)
     {

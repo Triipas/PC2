@@ -1,0 +1,350 @@
+@model PC2.ViewModels.AgendarVisitaViewModel
+
+@{
+    ViewData["Title"] = "Agendar Visita";
+    var visitasExistentes = ViewBag.VisitasExistentes as IEnumerable<PC2.Models.Visita> ?? new List<PC2.Models.Visita>();
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Inmuebles" asp-action="Index">Catálogo</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Inmuebles" asp-action="Details" asp-route-id="@Model.InmuebleId">@Model.InmuebleTitulo</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Agendar Visita</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Formulario de agendar visita -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-plus me-2"></i>Agendar Visita
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Agendar" method="post" class="needs-validation" novalidate>
+                        <input type="hidden" asp-for="InmuebleId" />
+                        <input type="hidden" asp-for="UsuarioId" />
+
+                        <!-- Información del inmueble -->
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                @if (!string.IsNullOrEmpty(Model.Inmueble?.Imagen))
+                                {
+                                    <img src="@Model.Inmueble.Imagen" alt="@Model.InmuebleTitulo" 
+                                         class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                }
+                                <div>
+                                    <h6 class="mb-1">@Model.InmuebleTitulo</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        @Model.Inmueble?.Direccion, @Model.Inmueble?.Ciudad
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Errores de validación -->
+                        <div asp-validation-summary="All" class="alert alert-danger" style="display: none;"></div>
+
+                        <div class="row">
+                            <!-- Fecha y hora de inicio -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaInicio" class="form-label">
+                                    <i class="fas fa-calendar me-1"></i>Fecha y hora de inicio *
+                                </label>
+                                <input asp-for="FechaInicio" type="datetime-local" 
+                                       class="form-control @(Html.ViewData.ModelState["FechaInicio"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                                       min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" 
+                                       max="@DateTime.Now.AddDays(30).ToString("yyyy-MM-ddTHH:mm")" />
+                                <span asp-validation-for="FechaInicio" class="invalid-feedback"></span>
+                                <div class="form-text">Horario laboral: 8:00 AM - 7:00 PM (Lunes a Sábado)</div>
+                            </div>
+
+                            <!-- Fecha y hora de fin -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaFin" class="form-label">
+                                    <i class="fas fa-clock me-1"></i>Fecha y hora de fin *
+                                </label>
+                                <input asp-for="FechaFin" type="datetime-local" 
+                                       class="form-control @(Html.ViewData.ModelState["FechaFin"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                                       min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" 
+                                       max="@DateTime.Now.AddDays(30).ToString("yyyy-MM-ddTHH:mm")" />
+                                <span asp-validation-for="FechaFin" class="invalid-feedback"></span>
+                                <div class="form-text">Duración: 30 minutos - 3 horas máximo</div>
+                            </div>
+                        </div>
+
+                        <!-- Slots sugeridos -->
+                        <div class="mb-3">
+                            <label class="form-label">Horarios sugeridos para mañana:</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm slot-sugerido" 
+                                        data-inicio="@DateTime.Now.Date.AddDays(1).AddHours(9).ToString("yyyy-MM-ddTHH:mm")"
+                                        data-fin="@DateTime.Now.Date.AddDays(1).AddHours(10).ToString("yyyy-MM-ddTHH:mm")">
+                                    9:00 - 10:00 AM
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm slot-sugerido"
+                                        data-inicio="@DateTime.Now.Date.AddDays(1).AddHours(10).ToString("yyyy-MM-ddTHH:mm")"
+                                        data-fin="@DateTime.Now.Date.AddDays(1).AddHours(11).ToString("yyyy-MM-ddTHH:mm")">
+                                    10:00 - 11:00 AM
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm slot-sugerido"
+                                        data-inicio="@DateTime.Now.Date.AddDays(1).AddHours(14).ToString("yyyy-MM-ddTHH:mm")"
+                                        data-fin="@DateTime.Now.Date.AddDays(1).AddHours(15).ToString("yyyy-MM-ddTHH:mm")">
+                                    2:00 - 3:00 PM
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm slot-sugerido"
+                                        data-inicio="@DateTime.Now.Date.AddDays(1).AddHours(16).ToString("yyyy-MM-ddTHH:mm")"
+                                        data-fin="@DateTime.Now.Date.AddDays(1).AddHours(17).ToString("yyyy-MM-ddTHH:mm")">
+                                    4:00 - 5:00 PM
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Notas -->
+                        <div class="mb-3">
+                            <label asp-for="Notas" class="form-label">
+                                <i class="fas fa-sticky-note me-1"></i>Notas adicionales (Opcional)
+                            </label>
+                            <textarea asp-for="Notas" class="form-control" rows="3" 
+                                      placeholder="Ej: Interesado en conocer el área de la cocina, horario preferido, etc."></textarea>
+                            <span asp-validation-for="Notas" class="text-danger"></span>
+                            <div class="form-text">Comparte detalles específicos que quieras revisar durante la visita</div>
+                        </div>
+
+                        <!-- Estado de disponibilidad -->
+                        <div id="estadoDisponibilidad" class="alert" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm me-2" role="status">
+                                    <span class="visually-hidden">Verificando...</span>
+                                </div>
+                                <span>Verificando disponibilidad...</span>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-controller="Inmuebles" asp-action="Details" asp-route-id="@Model.InmuebleId" 
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success" id="btnAgendar">
+                                <i class="fas fa-calendar-check me-1"></i>Agendar Visita
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar con información adicional -->
+        <div class="col-lg-4">
+            <!-- Visitas programadas -->
+            @if (visitasExistentes.Any())
+            {
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0">
+                            <i class="fas fa-calendar-alt me-2"></i>Visitas Programadas
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var visita in visitasExistentes.Take(5))
+                        {
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                                <div>
+                                    <small class="text-muted d-block">@visita.FechaInicio.ToString("dd/MM/yyyy")</small>
+                                    <strong>@visita.FechaInicio.ToString("HH:mm") - @visita.FechaFin.ToString("HH:mm")</strong>
+                                </div>
+                                <span class="badge bg-@(visita.Estado == PC2.Models.EstadoVisita.Confirmada ? "success" : "secondary")">
+                                    @visita.Estado
+                                </span>
+                            </div>
+                        }
+                        
+                        @if (visitasExistentes.Count() > 5)
+                        {
+                            <small class="text-muted">Y @(visitasExistentes.Count() - 5) visitas más...</small>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Información útil -->
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Información Importante
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <small>Las visitas son <strong>gratuitas</strong></small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            <small>Horario: <strong>8:00 AM - 7:00 PM</strong></small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-calendar-times text-warning me-2"></i>
+                            <small><strong>No disponible domingos</strong></small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-user-tie text-info me-2"></i>
+                            <small>Asesor especializado incluido</small>
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope text-secondary me-2"></i>
+                            <small>Recibirás confirmación por email</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fechaInicio = document.getElementById('FechaInicio');
+            const fechaFin = document.getElementById('FechaFin');
+            const estadoDisponibilidad = document.getElementById('estadoDisponibilidad');
+            const btnAgendar = document.getElementById('btnAgendar');
+            
+            // Slots sugeridos
+            document.querySelectorAll('.slot-sugerido').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const inicio = this.getAttribute('data-inicio');
+                    const fin = this.getAttribute('data-fin');
+                    
+                    fechaInicio.value = inicio;
+                    fechaFin.value = fin;
+                    
+                    verificarDisponibilidad();
+                });
+            });
+            
+            // Auto-ajustar fecha fin cuando cambia fecha inicio
+            fechaInicio.addEventListener('change', function() {
+                if (this.value) {
+                    const inicio = new Date(this.value);
+                    const fin = new Date(inicio.getTime() + (60 * 60 * 1000)); // +1 hora
+                    fechaFin.value = fin.toISOString().slice(0, 16);
+                    verificarDisponibilidad();
+                }
+            });
+            
+            fechaFin.addEventListener('change', verificarDisponibilidad);
+            
+            function verificarDisponibilidad() {
+                if (!fechaInicio.value || !fechaFin.value) return;
+                
+                estadoDisponibilidad.style.display = 'block';
+                estadoDisponibilidad.className = 'alert alert-info';
+                estadoDisponibilidad.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Verificando...</span>
+                        </div>
+                        <span>Verificando disponibilidad...</span>
+                    </div>`;
+                
+                const data = {
+                    inmuebleId: @Model.InmuebleId,
+                    fechaInicio: fechaInicio.value,
+                    fechaFin: fechaFin.value
+                };
+                
+                fetch('@Url.Action("VerificarDisponibilidad", "Visitas")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.disponible) {
+                        estadoDisponibilidad.className = 'alert alert-danger';
+                        estadoDisponibilidad.innerHTML = `
+                            <i class="fas fa-exclamation-triangle me-2"></i>${result.mensaje}`;
+                        btnAgendar.disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    estadoDisponibilidad.className = 'alert alert-warning';
+                    estadoDisponibilidad.innerHTML = `
+                        <i class="fas fa-exclamation-triangle me-2"></i>Error al verificar disponibilidad`;
+                });
+            }
+            
+            // Validación en tiempo real
+            function validarHorarioLaboral(fecha) {
+                const hora = fecha.getHours();
+                return hora >= 8 && hora < 19;
+            }
+            
+            function validarDomingo(fecha) {
+                return fecha.getDay() !== 0; // 0 = domingo
+            }
+            
+            fechaInicio.addEventListener('blur', function() {
+                if (this.value) {
+                    const fecha = new Date(this.value);
+                    
+                    if (!validarHorarioLaboral(fecha)) {
+                        this.setCustomValidity('La hora debe estar entre 8:00 AM y 7:00 PM');
+                    } else if (!validarDomingo(fecha)) {
+                        this.setCustomValidity('No se pueden agendar visitas los domingos');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                }
+            });
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .slot-sugerido:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .card {
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .alert {
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+}alert alert-success';
+                        estadoDisponibilidad.innerHTML = `
+                            <i class="fas fa-check-circle me-2"></i>${result.mensaje}`;
+                        btnAgendar.disabled = false;
+                    } else {
+                        estadoDisponibilidad.className = '

@@ -26,6 +26,23 @@
         </div>
     </div>
 
+    <!-- Mensajes de feedback -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     <!-- Contenido principal -->
     <div class="row">
         <!-- Imagen principal -->
@@ -64,6 +81,11 @@
                             <i class="fas fa-calculator me-1"></i>
                             Aprox. @((Model.Precio / Model.MetrosCuadrados).ToString("C"))/m²
                         </p>
+                    </div>
+
+                    <!-- Estado de reserva -->
+                    <div id="estadoReserva" class="mb-3">
+                        <!-- Se carga dinámicamente -->
                     </div>
 
                     <!-- Ubicación -->
@@ -109,20 +131,39 @@
                         </div>
                     </div>
 
-                    <!-- Botón de acción principal -->
-                    <div class="d-grid gap-2">
+                    <!-- Botones de acción principal -->
+                    <div class="d-grid gap-2" id="botonesAccion">
                         @if (User.Identity.IsAuthenticated)
                         {
-                            <button type="button" class="btn btn-success btn-lg" onclick="agendarVisita()">
+                            <a asp-controller="Visitas" asp-action="Agendar" asp-route-id="@Model.Id" 
+                               class="btn btn-success btn-lg">
                                 <i class="fas fa-calendar-plus me-2"></i>Agendar Visita
-                            </button>
-                            <button type="button" class="btn btn-outline-primary" onclick="reservarInmueble()">
-                                <i class="fas fa-clock me-2"></i>Reservar por 48h
-                            </button>
+                            </a>
+                            
+                            <!-- Botón de reservar (se muestra/oculta dinámicamente) -->
+                            <form asp-controller="Reservas" asp-action="Crear" asp-route-id="@Model.Id" 
+                                  method="post" id="formReservar" style="display: none;">
+                                <button type="submit" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-clock me-2"></i>Reservar por 48h
+                                </button>
+                            </form>
+                            
+                            <!-- Información de reserva existente -->
+                            <div id="infoReservaExistente" style="display: none;">
+                                <div class="alert alert-warning mb-2">
+                                    <i class="fas fa-clock me-2"></i>
+                                    <strong>Inmueble Reservado</strong>
+                                    <div id="tiempoRestante" class="small mt-1">
+                                        Tiempo restante: <span id="countdown"></span>
+                                    </div>
+                                </div>
+                            </div>
                         }
                         else
                         {
-                            <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-success btn-lg">
+                            <a asp-area="Identity" asp-page="/Account/Login" 
+                               asp-route-returnUrl="@Context.Request.Path" 
+                               class="btn btn-success btn-lg">
                                 <i class="fas fa-sign-in-alt me-2"></i>Iniciar sesión para agendar
                             </a>
                         }
@@ -215,22 +256,84 @@
     }
 </div>
 
-<!-- Scripts para las funcionalidades -->
-<script>
-    function agendarVisita() {
-        // Placeholder para la funcionalidad de agendar visita (Pregunta 3)
-        alert('Funcionalidad de agendar visita se implementará en la siguiente pregunta.');
-    }
-    
-    function reservarInmueble() {
-        // Placeholder para la funcionalidad de reserva (Pregunta 3)
-        alert('Funcionalidad de reserva se implementará en la siguiente pregunta.');
-    }
-    
-    function contactarAsesor() {
-        alert('Contactar asesor: Esta funcionalidad se puede integrar con un sistema de chat o formulario de contacto.');
-    }
-</script>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            verificarEstadoReserva();
+            
+            // Verificar estado cada 30 segundos
+            setInterval(verificarEstadoReserva, 30000);
+        });
+
+        function verificarEstadoReserva() {
+            fetch('@Url.Action("EstadoReserva", "Reservas", new { id = Model.Id })')
+                .then(response => response.json())
+                .then(data => {
+                    const formReservar = document.getElementById('formReservar');
+                    const infoReservaExistente = document.getElementById('infoReservaExistente');
+                    const estadoReserva = document.getElementById('estadoReserva');
+                    
+                    if (data.reservado) {
+                        // Mostrar información de reserva existente
+                        formReservar.style.display = 'none';
+                        infoReservaExistente.style.display = 'block';
+                        
+                        // Iniciar countdown
+                        if (data.tiempoRestante) {
+                            iniciarCountdown(data.tiempoRestante.totalSegundos);
+                        }
+                        
+                        // Mostrar estado en la parte superior
+                        estadoReserva.innerHTML = `
+                            <div class="alert alert-warning">
+                                <i class="fas fa-clock me-2"></i>
+                                <strong>Inmueble Reservado</strong>
+                                <div class="small">Este inmueble está temporalmente reservado</div>
+                            </div>`;
+                    } else {
+                        // Mostrar botón de reservar
+                        formReservar.style.display = 'block';
+                        infoReservaExistente.style.display = 'none';
+                        estadoReserva.innerHTML = `
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Disponible</strong>
+                                <div class="small">Este inmueble está disponible para reservar</div>
+                            </div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al verificar estado de reserva:', error);
+                });
+        }
+
+        function iniciarCountdown(segundosRestantes) {
+            const countdownElement = document.getElementById('countdown');
+            
+            function actualizarCountdown() {
+                if (segundosRestantes <= 0) {
+                    verificarEstadoReserva(); // Refrescar estado
+                    return;
+                }
+                
+                const horas = Math.floor(segundosRestantes / 3600);
+                const minutos = Math.floor((segundosRestantes % 3600) / 60);
+                const segundos = segundosRestantes % 60;
+                
+                countdownElement.textContent = `${horas}h ${minutos}m ${segundos}s`;
+                
+                segundosRestantes--;
+                setTimeout(actualizarCountdown, 1000);
+            }
+            
+            actualizarCountdown();
+        }
+        
+        function contactarAsesor() {
+            alert('Contactar asesor: Esta funcionalidad se puede integrar con un sistema de chat o formulario de contacto.');
+        }
+    </script>
+}
 
 @section Styles {
     <style>
@@ -248,6 +351,15 @@
         
         .badge {
             font-size: 0.8rem;
+        }
+
+        .alert {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        #countdown {
+            font-family: monospace;
+            font-weight: bold;
         }
     </style>
 }
